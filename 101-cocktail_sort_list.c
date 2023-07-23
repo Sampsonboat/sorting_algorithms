@@ -1,134 +1,108 @@
-#include <stdio.h>
-#include <stdlib.h>
+#include "sort.h"
 
-typedef struct listint_t {
-    int n;
-    struct listint_t *prev;
-    struct listint_t *next;
-} listint_t;
 
-void swap_nodes(listint_t **list, listint_t *node1, listint_t *node2) {
-    if (!node1 || !node2)
+void swap_node_ahead(listint_t **list, listint_t **tail, listint_t **shaker);
+void swap_node_behind(listint_t **list, listint_t **tail, listint_t **shaker);
+void cocktail_sort_list(listint_t **list);
+
+
+/**
+ * swap_node_ahead - Swap a node in a listint_t doubly-linked list
+ *                   list of integers with the node ahead of it.
+ * @list: A pointer to the head of a doubly-linked list of integers.
+ * @tail: A pointer to the tail of the doubly-linked list.
+ * @shaker: A pointer to the current swapping node of the cocktail shaker algo.
+ */
+void swap_node_ahead(listint_t **list, listint_t **tail, listint_t **shaker)
+{
+    listint_t *tmp = (*shaker)->next;
+
+
+    if ((*shaker)->prev != NULL)
+        (*shaker)->prev->next = tmp;
+    else
+        *list = tmp;
+    tmp->prev = (*shaker)->prev;
+    (*shaker)->next = tmp->next;
+    if (tmp->next != NULL)
+        tmp->next->prev = *shaker;
+    else
+        *tail = *shaker;
+    (*shaker)->prev = tmp;
+    tmp->next = *shaker;
+    *shaker = tmp;
+}
+
+
+/**
+ * swap_node_behind - Swap a node in a listint_t doubly-linked
+ *                    list of integers with the node behind it.
+ * @list: A pointer to the head of a doubly-linked list of integers.
+ * @tail: A pointer to the tail of the doubly-linked list.
+ * @shaker: A pointer to the current swapping node of the cocktail shaker algo.
+ */
+void swap_node_behind(listint_t **list, listint_t **tail, listint_t **shaker)
+{
+    listint_t *tmp = (*shaker)->prev;
+
+
+    if ((*shaker)->next != NULL)
+        (*shaker)->next->prev = tmp;
+    else
+        *tail = tmp;
+    tmp->next = (*shaker)->next;
+    (*shaker)->prev = tmp->prev;
+    if (tmp->prev != NULL)
+        tmp->prev->next = *shaker;
+    else
+        *list = *shaker;
+    (*shaker)->next = tmp;
+    tmp->prev = *shaker;
+    *shaker = tmp;
+}
+
+
+/**
+ * cocktail_sort_list - Sort a listint_t doubly-linked list of integers in
+ *                      ascending order using the cocktail shaker algorithm.
+ * @list: A pointer to the head of a listint_t doubly-linked list.
+ */
+void cocktail_sort_list(listint_t **list)
+{
+    listint_t *tail, *shaker;
+    bool shaken_not_stirred = false;
+
+
+    if (list == NULL || *list == NULL || (*list)->next == NULL)
         return;
 
-    if (node1->prev)
-        node1->prev->next = node2;
-    if (node2->next)
-        node2->next->prev = node1;
 
-    node1->next = node2->next;
-    node2->prev = node1->prev;
+    for (tail = *list; tail->next != NULL;)
+        tail = tail->next;
 
-    node1->prev = node2;
-    node2->next = node1;
 
-    if (*list == node1)
-        *list = node2;
-}
-
-void cocktail_sort_list(listint_t **list) {
-    if (!list || !(*list) || !(*list)->next)
-        return;
-
-    int swapped;
-    listint_t *start = NULL;
-    listint_t *end = NULL;
-
-    do {
-        swapped = 0;
-        listint_t *current = *list;
-
-        while (current->next != end) {
-            if (current->n > current->next->n) {
-                swap_nodes(list, current, current->next);
-                swapped = 1;
-                print_list(*list);
-            } else {
-                current = current->next;
+    while (shaken_not_stirred == false)
+    {
+        shaken_not_stirred = true;
+        for (shaker = *list; shaker != tail; shaker = shaker->next)
+        {
+            if (shaker->n > shaker->next->n)
+            {
+                swap_node_ahead(list, &tail, &shaker);
+                print_list((const listint_t *)*list);
+                shaken_not_stirred = false;
             }
         }
-
-        if (!swapped)
-            break;
-
-        end = current;
-
-        swapped = 0;
-        while (current->prev != start) {
-            if (current->n < current->prev->n) {
-                swap_nodes(list, current->prev, current);
-                swapped = 1;
-                print_list(*list);
-            } else {
-                current = current->prev;
+        for (shaker = shaker->prev; shaker != *list;
+                shaker = shaker->prev)
+        {
+            if (shaker->n < shaker->prev->n)
+            {
+                swap_node_behind(list, &tail, &shaker);
+                print_list((const listint_t *)*list);
+                shaken_not_stirred = false;
             }
         }
-
-        start = current;
-
-    } while (swapped);
-}
-
-/* Utility function to create a new node */
-listint_t *create_node(int n) {
-    listint_t *new_node = (listint_t *)malloc(sizeof(listint_t));
-    if (!new_node) {
-        printf("Memory allocation failed!\n");
-        exit(EXIT_FAILURE);
     }
-
-    new_node->n = n;
-    new_node->prev = NULL;
-    new_node->next = NULL;
-    return new_node;
-}
-
-/* Utility function to add a node to the end of the list */
-void add_node_end(listint_t **list, int n) {
-    listint_t *new_node = create_node(n);
-    if (!(*list)) {
-        *list = new_node;
-    } else {
-        listint_t *current = *list;
-        while (current->next) {
-            current = current->next;
-        }
-        current->next = new_node;
-        new_node->prev = current;
-    }
-}
-
-/* Utility function to print the list */
-void print_list(listint_t *list) {
-    while (list) {
-        printf("%d ", list->n);
-        list = list->next;
-    }
-    printf("\n");
-}
-
-int main() {
-    listint_t *list = NULL;
-
-    // Add elements to the list
-    add_node_end(&list, 9);
-    add_node_end(&list, 3);
-    add_node_end(&list, 7);
-    add_node_end(&list, 5);
-    add_node_end(&list, 1);
-    add_node_end(&list, 8);
-    add_node_end(&list, 2);
-    add_node_end(&list, 6);
-    add_node_end(&list, 4);
-
-    printf("Original list: ");
-    print_list(list);
-
-    cocktail_sort_list(&list);
-
-    printf("Sorted list: ");
-    print_list(list);
-
-    return 0;
 }
 

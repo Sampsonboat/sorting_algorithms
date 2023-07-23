@@ -1,55 +1,55 @@
-#include <stdio.h>
+#include "sort.h"
 
-void shell_sort(int *array, size_t size) {
-    // Calculate the Knuth sequence gap
-    size_t gap = 1;
-    while (gap < size) {
-        gap = gap * 3 + 1;
-    }
-    gap = (gap - 1) / 3;
 
-    while (gap > 0) {
-        // Perform insertion sort on elements separated by the gap
-        for (size_t i = gap; i < size; ++i) {
-            int temp = array[i];
-            size_t j = i;
-            while (j >= gap && array[j - gap] > temp) {
-                array[j] = array[j - gap];
-                j -= gap;
-            }
-            array[j] = temp;
-        }
+/**
+ * swap_ints - Swap two integers in an array.
+ * @a: The first integer to swap.
+ * @b: The second integer to swap.
+ */
+void swap_ints(int *a, int *b)
+{
+    int tmp;
 
-        // Print the array after each gap reduction
-        printf("Array at gap %zu: ", gap);
-        for (size_t i = 0; i < size; ++i) {
-            printf("%d ", array[i]);
-        }
-        printf("\n");
 
-        // Reduce the gap using the Knuth sequence
-        gap = (gap - 1) / 3;
-    }
+    tmp = *a;
+    *a = *b;
+    *b = tmp;
 }
 
-int main() {
-    int array[] = {9, 3, 7, 5, 1, 8, 2, 6, 4};
-    size_t size = sizeof(array) / sizeof(array[0]);
 
-    printf("Original array: ");
-    for (size_t i = 0; i < size; ++i) {
-        printf("%d ", array[i]);
+/**
+ * shell_sort - Sort an array of integers in ascending
+ *              order using the shell sort algorithm.
+ * @array: An array of integers.
+ * @size: The size of the array.
+ *
+ * Description: Uses the Knuth interval sequence.
+ */
+void shell_sort(int *array, size_t size)
+{
+    size_t gap, i, j;
+
+
+    if (array == NULL || size < 2)
+        return;
+
+
+    for (gap = 1; gap < (size / 3);)
+        gap = gap * 3 + 1;
+
+
+    for (; gap >= 1; gap /= 3)
+    {
+        for (i = gap; i < size; i++)
+        {
+            j = i;
+            while (j >= gap && array[j - gap] > array[j])
+            {
+                swap_ints(array + j, array + (j - gap));
+                j -= gap;
+            }
+        }
+        print_array(array, size);
     }
-    printf("\n");
-
-    shell_sort(array, size);
-
-    printf("Sorted array: ");
-    for (size_t i = 0; i < size; ++i) {
-        printf("%d ", array[i]);
-    }
-    printf("\n");
-
-    return 0;
 }
 
